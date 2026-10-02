@@ -1,0 +1,160 @@
+import 'package:flutter/material.dart';
+
+const int defaultFollowers = 1500;
+const int defaultLikes = 120;
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: ProfileCardScreen(),
+    );
+  }
+}
+
+class ProfileCardScreen extends StatefulWidget {
+  const ProfileCardScreen({super.key});
+
+  @override
+  State<ProfileCardScreen> createState() => _ProfileCardScreenState();
+}
+
+class _ProfileCardScreenState extends State<ProfileCardScreen> {
+
+  bool _isFollowing = false;
+  bool _isLiked = false;
+  int _followers = defaultFollowers;
+  int _likes = defaultLikes;
+
+  void _toggleFollow() {
+    setState(() {
+      _isFollowing = !_isFollowing;
+      if (_isFollowing) {
+        _followers++;
+      } else {
+        _followers--;
+      }
+    });
+  }
+
+  void _toggleLike() {
+    setState(() {
+      _isLiked = !_isLiked;
+      if (_isLiked) {
+        _likes++;
+      } else {
+        _likes--;
+      }
+    });
+  }
+
+  void _reset() {
+    setState(() {
+      _isFollowing = false;
+      _isLiked = false;
+      _followers = defaultFollowers;
+      _likes = defaultLikes;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Profile Card'),
+        centerTitle: true,
+      ),
+      body: Center(
+        child: Card(
+          elevation: 6,
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+               
+                const CircleAvatar(
+                  radius: 45,
+                  child: Icon(Icons.person, size: 50),
+                ),
+                const SizedBox(height: 16),
+
+                const Text(
+                  'Adlan Dzhambylov',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                ),
+                const Text('Flutter Developer • Almaty'),
+                const SizedBox(height: 8),
+                const Text('Building apps with Flutter.'),
+                const SizedBox(height: 20),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Column(
+                      children: [
+                        Text(
+                          '$_followers',
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Text('Followers'),
+                      ],
+                    ),
+                    Column(
+                      children: [
+                        Text(
+                          '$_likes',
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Text('Likes'),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      onPressed: _toggleFollow,
+                      child: Text(_isFollowing ? 'Following' : 'Follow'),
+                    ),
+                    const SizedBox(width: 12),
+                    ElevatedButton.icon(
+                      onPressed: _toggleLike,
+                      icon: Icon(
+                        _isLiked ? Icons.favorite : Icons.favorite_border,
+                        color: _isLiked ? Colors.red : null,
+                      ),
+                      label: Text(_isLiked ? 'Liked' : 'Like'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+
+                ElevatedButton(
+                  onPressed: _reset,
+                  child: const Text('Reset'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
