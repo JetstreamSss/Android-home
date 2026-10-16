@@ -1,0 +1,448 @@
+```dart
+import 'package:flutter/material.dart';
+
+void main() => runApp(const ShopApp());
+
+class Item {
+  final String id;
+  final String title;
+  final String description;
+  final String imageUrl;
+  final double price;
+  final String category;
+
+  const Item({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.imageUrl,
+    required this.price,
+    required this.category,
+  });
+
+  @override
+  bool operator ==(Object other) => other is Item && other.id == id;
+
+  @override
+  int get hashCode => id.hashCode;
+}
+
+class ShopApp extends StatelessWidget {
+  const ShopApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Lab 7 Shop',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(colorSchemeSeed: Colors.indigo, useMaterial3: true),
+      home: const HomeScreen(),
+    );
+  }
+}
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int _currentIndex = 0;
+  final List<Item> _favorites = [];
+
+  static const List<Item> _items = [
+    Item(
+      id: '1',
+      title: 'Беспроводные наушники',
+      description:
+          'Наушники с активным шумоподавлением и временем работы до 30 часов. '
+          'Удобная посадка и чистый звук.',
+      imageUrl: 'https://picsum.photos/id/1/600/400',
+      price: 89.99,
+      category: 'Электроника',
+    ),
+    Item(
+      id: '2',
+      title: 'Спортивные кроссовки',
+      description:
+          'Лёгкие дышащие кроссовки для бега и тренировок. '
+          'Амортизирующая подошва снижает нагрузку на суставы.',
+      imageUrl: 'https://picsum.photos/id/21/600/400',
+      price: 64.50,
+      category: 'Одежда',
+    ),
+    Item(
+      id: '3',
+      title: 'Умные часы',
+      description:
+          'Фитнес-трекер, пульсометр, уведомления с телефона '
+          'и водонепроницаемый корпус.',
+      imageUrl: 'https://picsum.photos/id/26/600/400',
+      price: 129.00,
+      category: 'Электроника',
+    ),
+    Item(
+      id: '4',
+      title: 'Рюкзак для города',
+      description:
+          'Вместительный рюкзак с отделением для ноутбука 15" '
+          'и влагостойкой тканью.',
+      imageUrl: 'https://picsum.photos/id/42/600/400',
+      price: 45.00,
+      category: 'Аксессуары',
+    ),
+  ];
+
+  bool _isFavorite(Item item) => _favorites.contains(item);
+
+  void _toggleFavorite(Item item) {
+    setState(() {
+      if (_favorites.contains(item)) {
+        _favorites.remove(item);
+      } else {
+        _favorites.add(item);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: IndexedStack(
+        index: _currentIndex,
+        children: [
+          FeedTab(
+            items: _items,
+            isFavorite: _isFavorite,
+            onToggleFavorite: _toggleFavorite,
+          ),
+          FavoritesTab(
+            favorites: _favorites,
+            isFavorite: _isFavorite,
+            onToggleFavorite: _toggleFavorite,
+          ),
+          const ProfileTab(),
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (i) => setState(() => _currentIndex = i),
+        items: [
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.storefront),
+            label: 'Feed',
+          ),
+          BottomNavigationBarItem(
+            icon: Badge(
+              isLabelVisible: _favorites.isNotEmpty,
+              label: Text('${_favorites.length}'),
+              child: const Icon(Icons.favorite),
+            ),
+            label: 'Favorites',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class FeedTab extends StatelessWidget {
+  final List<Item> items;
+  final bool Function(Item) isFavorite;
+  final void Function(Item) onToggleFavorite;
+
+  const FeedTab({
+    super.key,
+    required this.items,
+    required this.isFavorite,
+    required this.onToggleFavorite,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Feed')),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(12),
+        itemCount: items.length,
+        itemBuilder: (context, index) {
+          final item = items[index];
+          return Card(
+            clipBehavior: Clip.antiAlias,
+            margin: const EdgeInsets.only(bottom: 12),
+            child: InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => DetailScreen(
+                      item: item,
+                      isFavorite: isFavorite,
+                      onToggleFavorite: onToggleFavorite,
+                    ),
+                  ),
+                );
+              },
+              child: Row(
+                children: [
+                  Image.network(
+                    item.imageUrl,
+                    width: 110,
+                    height: 110,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => const SizedBox(
+                      width: 110,
+                      height: 110,
+                      child: Icon(Icons.broken_image),
+                    ),
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(item.title,
+                              style: Theme.of(context).textTheme.titleMedium),
+                          const SizedBox(height: 4),
+                          Text(item.category,
+                              style: Theme.of(context).textTheme.bodySmall),
+                          const SizedBox(height: 8),
+                          Text(
+                            '\$${item.price.toStringAsFixed(2)}',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleSmall
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      isFavorite(item) ? Icons.favorite : Icons.favorite_border,
+                      color: isFavorite(item) ? Colors.red : null,
+                    ),
+                    onPressed: () => onToggleFavorite(item),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class FavoritesTab extends StatelessWidget {
+  final List<Item> favorites;
+  final bool Function(Item) isFavorite;
+  final void Function(Item) onToggleFavorite;
+
+  const FavoritesTab({
+    super.key,
+    required this.favorites,
+    required this.isFavorite,
+    required this.onToggleFavorite,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Favorites')),
+      body: favorites.isEmpty
+          ? const Center(child: Text('Пока ничего не добавлено ♡'))
+          : ListView.builder(
+              itemCount: favorites.length,
+              itemBuilder: (context, index) {
+                final item = favorites[index];
+                return ListTile(
+                  leading: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      item.imageUrl,
+                      width: 56,
+                      height: 56,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) =>
+                          const Icon(Icons.broken_image),
+                    ),
+                  ),
+                  title: Text(item.title),
+                  subtitle: Text('\$${item.price.toStringAsFixed(2)}'),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete_outline),
+                    onPressed: () => onToggleFavorite(item),
+                  ),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => DetailScreen(
+                        item: item,
+                        isFavorite: isFavorite,
+                        onToggleFavorite: onToggleFavorite,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+    );
+  }
+}
+
+class ProfileTab extends StatefulWidget {
+  const ProfileTab({super.key});
+
+  @override
+  State<ProfileTab> createState() => _ProfileTabState();
+}
+
+class _ProfileTabState extends State<ProfileTab> {
+  bool _notifications = true;
+  bool _newsletter = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Profile')),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          const SizedBox(height: 16),
+          const Center(
+            child: CircleAvatar(radius: 48, child: Icon(Icons.person, size: 48)),
+          ),
+          const SizedBox(height: 12),
+          Center(
+            child: Text('Иван Иванов',
+                style: Theme.of(context).textTheme.titleLarge),
+          ),
+          const Center(child: Text('ivan@example.com')),
+          const SizedBox(height: 24),
+          const Divider(),
+          SwitchListTile(
+            title: const Text('Уведомления'),
+            value: _notifications,
+            onChanged: (v) => setState(() => _notifications = v),
+          ),
+          SwitchListTile(
+            title: const Text('Рассылка'),
+            value: _newsletter,
+            onChanged: (v) => setState(() => _newsletter = v),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class DetailScreen extends StatefulWidget {
+  final Item item;
+  final bool Function(Item) isFavorite;
+  final void Function(Item) onToggleFavorite;
+
+  const DetailScreen({
+    super.key,
+    required this.item,
+    required this.isFavorite,
+    required this.onToggleFavorite,
+  });
+
+  @override
+  State<DetailScreen> createState() => _DetailScreenState();
+}
+
+class _DetailScreenState extends State<DetailScreen> {
+  late bool _fav;
+
+  @override
+  void initState() {
+    super.initState();
+    _fav = widget.isFavorite(widget.item);
+  }
+
+  void _toggle() {
+    widget.onToggleFavorite(widget.item);
+    setState(() => _fav = widget.isFavorite(widget.item));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final item = widget.item;
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(item.title),
+        actions: [
+          IconButton(
+            icon: Icon(_fav ? Icons.favorite : Icons.favorite_border,
+                color: _fav ? Colors.red : null),
+            onPressed: _toggle,
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Image.network(
+              item.imageUrl,
+              width: double.infinity,
+              height: 240,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => const SizedBox(
+                height: 240,
+                child: Center(child: Icon(Icons.broken_image, size: 48)),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(item.title,
+                      style: Theme.of(context).textTheme.headlineSmall),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Chip(label: Text(item.category)),
+                      const Spacer(),
+                      Text(
+                        '\$${item.price.toStringAsFixed(2)}',
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleLarge
+                            ?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(item.description,
+                      style: Theme.of(context).textTheme.bodyLarge),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      icon: const Icon(Icons.arrow_back),
+                      label: const Text('Назад'),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+```
